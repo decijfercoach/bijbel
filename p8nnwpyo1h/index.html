@@ -52,6 +52,7 @@ h1{font-size:clamp(28px,5vw,40px);font-weight:700;margin:0;line-height:1.1;text-
 .tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--mid);outline-offset:2px}
 .panel[hidden]{display:none}
 .search{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.search input[type=search]:disabled{opacity:.55;cursor:not-allowed}
 .search input[type=search]{width:100%;font:inherit;font-size:17px;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg2);color:var(--fg)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:var(--bg2);color:var(--fg);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
@@ -233,7 +234,6 @@ header .lead{color:#FEF0E6;font-weight:500;font-size:16px;max-width:46ch;text-sh
   <button class="view" role="tab" aria-selected="false" data-view="sector">Voorbeeldkosten per sector</button>
 </div>
 <div class="search" id="searchBlock">
-  <input type="search" id="q" placeholder="Zoek een kost: bril, laptop, restaurant, kapper, auto…" autocomplete="off">
   <div class="row">
     <select id="vorm" aria-label="Ondernemingsvorm" style="font:inherit;font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);color:var(--fg)">
       <option value="" selected>Kies eerst: eenmanszaak of vennootschap</option>
@@ -242,6 +242,7 @@ header .lead{color:#FEF0E6;font-weight:500;font-size:16px;max-width:46ch;text-sh
     </select>
     <span class="count" id="count"></span>
   </div>
+  <input type="search" id="q" placeholder="Zoek een kost: bril, laptop, restaurant, kapper, auto…" autocomplete="off" disabled>
 </div>
 <section class="intro" id="uitlegPanel">
   <details class="boxNone" open>
@@ -832,7 +833,9 @@ function render(){
   if(openId!==null){const k=K[openId];if(k.tree&&TREES[k.tree])startTree(k.tree);if(k.tree==='auto'&&k.n.startsWith('Autokosten: personenwagen beperkt')){g('a_vorm').value=fVorm;g('a_tarief').value=fVorm==='vn'?'20':'45';g('a_vorm').closest('label').hidden=true;calc();}if(k.tree==='onkost')calcOnk();}
 }
 document.getElementById('q').addEventListener('input',e=>{query=e.target.value;fromSector=null;if(curView!=='lijst'&&query.trim())showView('lijst');render()});
-document.getElementById('vorm').addEventListener('change',e=>{fVorm=e.target.value;try{localStorage.setItem('bkb-vorm',fVorm)}catch(x){}render()});
+function zoekVrij(){const q=document.getElementById('q');q.disabled=!fVorm;q.placeholder=fVorm?'Zoek een kost: bril, laptop, restaurant, kapper, auto…':'Kies eerst hierboven je ondernemingsvorm';}
+zoekVrij();
+document.getElementById('vorm').addEventListener('change',e=>{fVorm=e.target.value;try{localStorage.setItem('bkb-vorm',fVorm)}catch(x){}zoekVrij();render();if(fVorm)document.getElementById('q').focus()});
 document.getElementById('list').addEventListener('click',e=>{
   const bk=e.target.closest('[data-back]');
   if(bk){const sName=fromSector;fromSector=null;curSector=sName;showView('sector');requestAnimationFrame(()=>{const t=document.querySelector('#sectorOut .item.open');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});return}
